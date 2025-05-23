@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation DApp - Top 3 Donors</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.3.0/web3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .donation-form h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .donate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .donate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .donate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .stat-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .top-donors {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .top-donors h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-align: center;
+        }
+        
+        .donors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .donor-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .donor-card.rank-1 {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+            color: #333;
+        }
+        
+        .donor-card.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e2e8f0 100%);
+            color: #333;
+        }
+        
+        .donor-card.rank-3 {
+            background: linear-gradient(135deg, #cd7f32 0%, #d69e2e 100%);
+            color: white;
+        }
+        
+        .donor-rank {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .donor-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .donor-amount {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .donor-address {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+        
+        .connection-status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .connect-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .donors-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Donation DApp</h1>
+            <p>Support our cause and see the top 3 donors on the blockchain!</p>
+        </div>
+        
+        <div id="connectionStatus" class="connection-status disconnected">
+            <div>MetaMask Not Connected</div>
+            <button id="connectBtn" class="connect-btn">Connect MetaMask</button>
+        </div>
+        
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+        
+        <div class="main-content">
+            <div class="card donation-form">
+                <h2>💝 Make a Donation</h2>
+                <form id="donationForm">
+                    <div class="form-group">
+                        <label for="donorName">Your Name:</label>
+                        <input type="text" id="donorName" name="donorName" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label for="donationAmount">Amount (ETH):</label>
+                        <input type="number" id="donationAmount" name="donationAmount" step="0.001" min="0.001" required placeholder="0.001">
+                    </div>
+                    <button type="submit" class="donate-btn" id="donateBtn" disabled>
+                        <span id="donateText">Donate Now</span>
+                        <div id="donateLoading" class="loading" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="card stats-card">
+                <h2>📊 Contract Stats</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Total Donations:</span>
+                    <span class="stat-value" id="totalDonations">0 ETH</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Donors:</span>
+                    <span class="stat-value" id="totalDonors">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Contract Balance:</span>
+                    <span class="stat-value" id="contractBalance">0 ETH</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Your Contribution:</span>
+                    <span class="stat-value" id="userContribution">0 ETH</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="top-donors">
+            <h2>🏆 Top 3 Donors</h2>
+            <div class="donors-grid" id="topDonorsGrid">
+                <div class="donor-card rank-1">
+                    <div class="donor-rank">🥇 #1</div>
+                    <div class="donor-name" id="donor1Name">No donations yet</div>
+                    <div class="donor-amount" id="donor1Amount">0 ETH</div>
+                    <div class="donor-address" id="donor1Address"></div>
+                </div>
+                <div class="donor-card rank-2">
+                    <div class="donor-rank">🥈 #2</div>
+                    <div class="donor-name" id="donor2Name">No donations yet</div>
+                    <div class="donor-amount" id="donor2Amount">0 ETH</div>
+                    <div class="donor-address" id="donor2Address"></div>
+                </div>
+                <div class="donor-card rank-3">
+                    <div class="donor-rank">🥉 #3</div>
+                    <div class="donor-name" id="donor3Name">No donations yet</div>
+                    <div class="donor-amount" id="donor3Amount">0 ETH</div>
+                    <div class="donor-address" id="donor3Address"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

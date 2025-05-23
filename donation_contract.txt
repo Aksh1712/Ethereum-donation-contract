@@ -1,0 +1,150 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+contract DonationContract {
+    struct Donor {
+        address donorAddress;
+        uint256 totalDonated;
+        string name;
+    }
+    
+    address public owner;
+    uint256 public totalDonations;
+    uint256 public totalDonors;
+    
+    // Array to store top 3 donors
+    Donor[3] public topDonors;
+    
+    // Mapping to track individual donor contributions
+    mapping(address => uint256) public donorContributions;
+    mapping(address => string) public donorNames;
+    mapping(address => bool) public hasDonated;
+    
+    // Events
+    event DonationReceived(address indexed donor, uint256 amount, string name);
+    event TopDonorsUpdated(address indexed newTopDonor, uint256 amount);
+    event Withdrawal(address indexed owner, uint256 amount);
+    
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+    
+    constructor() {
+        owner = msg.sender;
+        totalDonations = 0;
+        totalDonors = 0;
+    }
+    
+    function donate(string memory _name) public payable {
+        require(msg.value > 0, "Donation amount must be greater than 0");
+        require(bytes(_name).length > 0, "Name cannot be empty");
+        
+        // Update donor information
+        if (!hasDonated[msg.sender]) {
+            totalDonors++;
+            hasDonated[msg.sender] = true;
+        }
+        
+        donorContributions[msg.sender] += msg.value;
+        donorNames[msg.sender] = _name;
+        totalDonations += msg.value;
+        
+        // Update top donors
+        updateTopDonors(msg.sender, donorContributions[msg.sender], _name);
+        
+        emit DonationReceived(msg.sender, msg.value, _name);
+    }
+    
+    function updateTopDonors(address _donor, uint256 _totalAmount, string memory _name) internal {
+        // Check if donor should be in top 3
+        for (uint256 i = 0; i < 3; i++) {
+            if (topDonors[i].donorAddress == _donor) {
+                // Update existing donor
+                topDonors[i].totalDonated = _totalAmount;
+                topDonors[i].name = _name;
+                sortTopDonors();
+                emit TopDonorsUpdated(_donor, _totalAmount);
+                return;
+            }
+        }
+        
+        // Check if new donor qualifies for top 3
+        if (_totalAmount > topDonors[2].totalDonated) {
+            topDonors[2] = Donor(_donor, _totalAmount, _name);
+            sortTopDonors();
+            emit TopDonorsUpdated(_donor, _totalAmount);
+        }
+    }
+    
+    function sortTopDonors() internal {
+        // Simple bubble sort for 3 elements (most efficient for small arrays)
+        for (uint256 i = 0; i < 2; i++) {
+            for (uint256 j = 0; j < 2 - i; j++) {
+                if (topDonors[j].totalDonated < topDonors[j + 1].totalDonated) {
+                    Donor memory temp = topDonors[j];
+                    topDonors[j] = topDonors[j + 1];
+                    topDonors[j + 1] = temp;
+                }
+            }
+        }
+    }
+    
+    function getTopDonors() public view returns (Donor[3] memory) {
+        return topDonors;
+    }
+    
+    function getDonorInfo(address _donor) public view returns (uint256, string memory) {
+        return (donorContributions[_donor], donorNames[_donor]);
+    }
+    
+    function getContractBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+    
+    function withdraw() public onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No funds to withdraw");
+        
+        payable(owner).transfer(balance);
+        emit Withdrawal(owner, balance);
+    }
+    
+    function withdrawPartial(uint256 _amount) public onlyOwner {
+        require(_amount > 0, "Amount must be greater than 0");
+        require(_amount <= address(this).balance, "Insufficient contract balance");
+        
+        payable(owner).transfer(_amount);
+        emit Withdrawal(owner, _amount);
+    }
+    
+    // Function to change ownership
+    function transferOwnership(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0), "New owner cannot be zero address");
+        owner = _newOwner;
+    }
+    
+    // Emergency function to pause donations (if needed)
+    bool public donationsPaused = false;
+    
+    function pauseDonations() public onlyOwner {
+        donationsPaused = true;
+    }
+    
+    function unpauseDonations() public onlyOwner {
+        donationsPaused = false;
+    }
+    
+    modifier whenNotPaused() {
+        require(!donationsPaused, "Donations are currently paused");
+        _;
+    }
+    
+    // Fallback function to receive Ether
+    receive() external payable {
+        require(!donationsPaused, "Donations are currently paused");
+        // Anonymous donation
+        totalDonations += msg.value;
+        emit DonationReceived(msg.sender, msg.value, "Anonymous");
+    }
+}

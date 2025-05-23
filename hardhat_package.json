@@ -1,0 +1,46 @@
+{
+  "name": "donation-contract",
+  "version": "1.0.0",
+  "description": "Ethereum Donation Smart Contract with Top 3 Donors Tracking",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "npx hardhat run scripts/deploy.js --network sepolia",
+    "deploy:mainnet": "npx hardhat run scripts/deploy.js --network mainnet",
+    "test": "npx hardhat test",
+    "node": "npx hardhat node",
+    "console": "npx hardhat console",
+    "clean": "npx hardhat clean",
+    "verify": "npx hardhat verify"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@typechain/ethers-v6": "^0.5.0",
+    "@typechain/hardhat": "^9.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": ">=9.1.0",
+    "chai": "^4.2.0",
+    "ethers": "^6.4.0",
+    "hardhat": "^2.19.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.8.1",
+    "typechain": "^8.3.0",
+    "typescript": ">=4.5.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "smart-contract",
+    "donations",
+    "hardhat"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
