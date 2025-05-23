@@ -1,0 +1,30 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Hardhat files
+artifacts/
+cache/
+coverage/
+typechain/
+*.tsbuildinfo
+
+# Local environment variables
+.env
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+
+# Build output (optional frontend build folder)
+dist/
+build/
